@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin id="cordova-plugin-gemini-x" version="1.0.0"
+        xmlns="http://www.phonegap.com/ns/plugins/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <name>Cordova Gemini X</name>
+    <description>Cordova plugin to invoke Google's Gemini AI models on Android and iOS.</description>
+
+    <repo>https://github.com/dpa99c/cordova-plugin-gemini-x.git</repo>
+    <issue>https://github.com/dpa99c/cordova-plugin-gemini-x/issues</issue>
+    <author email="dave@workingedge.co.uk">Dave Alden</author>
+
+    <license>MIT</license>
+
+    <js-module src="www/gemini-x.js" name="gemini-x">
+        <clobbers target="GeminiX" />
+    </js-module>
+
+    <platform name="android">
+
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="GeminiXPlugin" >
+                <param name="android-package" value="uk.co.workingedge.GeminiXPlugin"/>
+            </feature>
+        </config-file>
+
+        <source-file src="src/android/GeminiXPlugin.java" target-dir="src/uk/co/workingedge" />
+
+    </platform>
+
+    <platform name="ios">
+
+        <config-file target="config.xml" parent="/*">
+            <feature name="GeminiXPlugin">
+                <param name="ios-package" value="GeminiXPlugin" />
+            </feature>
+        </config-file>
+
+        <header-file src="src/ios/GeminiXPlugin.h" />
+        <source-file src="src/ios/GeminiXPlugin.m" />
+    </platform>
+
+</plugin>

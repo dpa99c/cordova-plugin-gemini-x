@@ -1,0 +1,25 @@
+{
+    "name": "cordova-plugin-gemini-x",
+    "version": "1.0.0",
+    "author": {
+        "name": "Dave Alden",
+        "email": "dave@workingedge.co.uk"
+    },
+    "homepage": "https://github.com/dpa99c/cordova-plugin-gemini-x",
+    "description": "Cordova plugin to invoke Google's Gemini AI models",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/dpa99c/cordova-plugin-gemini-x.git"
+    },
+    "bugs": {
+        "url": "https://github.com/dpa99c/cordova-plugin-gemini-x/issues"
+    },
+    "cordova": {
+        "id": "cordova-plugin-gemini-x",
+        "platforms": [
+            "ios",
+            "android"
+        ]
+    }
+}
