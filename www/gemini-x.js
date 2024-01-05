@@ -19,9 +19,76 @@
  */
 
 var GeminiX = {
-    init : function( success, error ) {
-        cordova.exec(success, error, "GeminiXPlugin", "init", [])
-    }
+    SafetySettingLevel: {
+        NONE: "NONE",
+        ONLY_HIGH: "ONLY_HIGH",
+        MEDIUM_AND_ABOVE: "MEDIUM_AND_ABOVE",
+        LOW_AND_ABOVE: "LOW_AND_ABOVE",
+        UNSPECIFIED: "UNSPECIFIED"
+    },
+    SafetySettingHarmCategory: {
+        HARASSMENT: "HARASSMENT",
+        HATE_SPEECH: "HATE_SPEECH",
+        SEXUALLY_EXPLICIT: "SEXUALLY_EXPLICIT",
+        DANGEROUS_CONTENT: "DANGEROUS_CONTENT",
+        UNSPECIFIED: "UNSPECIFIED"
+    },
+
+    initModel : function( success, error, params) {
+        if(typeof success !== 'function') return error('success callback must be a function');
+        if(typeof error !== 'function') return error('error callback must be a function');
+        if(typeof params !== 'object') return error('params argument must be an object');
+        if(typeof params.modelName !== 'string') return error('params.modelName must be specified');
+        if(typeof params.apiKey !== 'string') return error('params.apiKey must be specified');
+
+        cordova.exec(success, error, "GeminiXPlugin", "initModel", [params])
+    },
+    sendMessage: function(success, error, text, options){
+        if(typeof success !== 'function') return error('success callback must be a function');
+        if(typeof error !== 'function') return error('error callback must be a function');
+        if(typeof text !== 'string') return error('text argument must be a string');
+        if(typeof options !== 'undefined' && typeof options !== 'object') return error('options argument must be an object');
+
+        cordova.exec(function(result){
+            success(result.response, result.isFinal);
+        }, error, "GeminiXPlugin", "sendMessage", [text, options])
+    },
+    countTokens: function(success, error, text, options){
+        if(typeof success !== 'function') return error('success callback must be a function');
+        if(typeof error !== 'function') return error('error callback must be a function');
+        if(typeof text !== 'string') return error('text argument must be a string');
+        if(typeof options !== 'undefined' && typeof options !== 'object') return error('options argument must be an object');
+
+        cordova.exec(success, error, "GeminiXPlugin", "countTokens", [text, options])
+    },
+    initChat: function(success, error, chatHistory){
+        if(typeof success !== 'function') return error('success callback must be a function');
+        if(typeof error !== 'function') return error('error callback must be a function');
+
+        cordova.exec(success, error, "GeminiXPlugin", "initChat", [chatHistory])
+    },
+    sendChatMessage: function(success, error, text, options){
+        if(typeof success !== 'function') return error('success callback must be a function');
+        if(typeof error !== 'function') return error('error callback must be a function');
+        if(typeof text !== 'string') return error('text argument must be a string');
+        if(typeof options !== 'undefined' && typeof options !== 'object') return error('options argument must be an object');
+
+        cordova.exec(function(result){
+            success(result.response, result.isFinal);
+        }, error, "GeminiXPlugin", "sendChatMessage", [text, options])
+    },
+    countChatTokens: function(success, error, options){
+        if(typeof success !== 'function') return error('success callback must be a function');
+        if(typeof error !== 'function') return error('error callback must be a function');
+        if(typeof options !== 'undefined' && typeof options !== 'object') return error('options argument must be an object');
+
+        cordova.exec(success, error, "GeminiXPlugin", "countChatTokens", [options])
+    },
+    getChatHistory: function(success, error){
+        if(typeof success !== 'function') return error('success callback must be a function');
+
+        cordova.exec(success, error, "GeminiXPlugin", "getChatHistory", [])
+    },
 };
 
 module.exports = GeminiX;

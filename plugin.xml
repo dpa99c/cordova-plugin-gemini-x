@@ -3,8 +3,8 @@
         xmlns="http://www.phonegap.com/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <name>Cordova Gemini X</name>
-    <description>Cordova plugin to invoke Google's Gemini AI models on Android and iOS.</description>
+    <name>cordova-plugin-gemini-x</name>
+    <description>Cordova plugin to use Google's Gemini AI SDK for Android and iOS</description>
 
     <repo>https://github.com/dpa99c/cordova-plugin-gemini-x.git</repo>
     <issue>https://github.com/dpa99c/cordova-plugin-gemini-x/issues</issue>
@@ -18,26 +18,46 @@
 
     <platform name="android">
 
+        <preference name="ANDROID_GENERATIVEAI_VERSION" default="0.1.1" />
+        <framework src="com.google.ai.client.generativeai:generativeai:$ANDROID_GENERATIVEAI_VERSION" />
+
         <config-file target="res/xml/config.xml" parent="/*">
+            <preference name="AndroidXEnabled" value="true" />
+            <preference name="GradlePluginKotlinEnabled" value="true" />
+
+            <preference name="android-targetSdkVersion" value="33" />
+            <preference name="android-compileSdkVersion" value="34" />
+
+            <preference name="GradleVersion" value="8.0" />
+            <preference name="AndroidGradlePluginVersion" value="8.0.0" />
+            <preference name="GradlePluginKotlinVersion" value="1.9.0" />
+
             <feature name="GeminiXPlugin" >
-                <param name="android-package" value="uk.co.workingedge.GeminiXPlugin"/>
+                <param name="android-package" value="uk.co.workingedge.gemini.x.GeminiXPlugin"/>
             </feature>
         </config-file>
 
-        <source-file src="src/android/GeminiXPlugin.java" target-dir="src/uk/co/workingedge" />
+        <source-file src="src/android/GeminiXPlugin.kt" target-dir="java/uk/co/workingedge/gemini/x" />
+        <source-file src="src/android/gemini-x-android/GeminiX.kt" target-dir="java/uk/co/workingedge/gemini/x/lib" />
+
+        <!-- Patch cordova-android@12 to build with AGP 8 / Gradle 8 / Kotlin 1.9 -->
+        <framework src="src/android/build-extras.gradle" custom="true" type="gradleReference" />
+        <hook type="after_prepare" src="src/android/after_prepare.js" />
 
     </platform>
 
     <platform name="ios">
 
         <config-file target="config.xml" parent="/*">
+            <preference name="deployment-target" value="15.0" /> <!-- min supported iOS version -->
+
             <feature name="GeminiXPlugin">
                 <param name="ios-package" value="GeminiXPlugin" />
             </feature>
         </config-file>
 
-        <header-file src="src/ios/GeminiXPlugin.h" />
-        <source-file src="src/ios/GeminiXPlugin.m" />
+        <source-file src="src/ios/GeminiXPlugin.swift" />
+        <source-file src="src/ios/gemini-x-ios/GeminiX.swift" />
     </platform>
 
 </plugin>

@@ -6,7 +6,7 @@
         "email": "dave@workingedge.co.uk"
     },
     "homepage": "https://github.com/dpa99c/cordova-plugin-gemini-x",
-    "description": "Cordova plugin to invoke Google's Gemini AI models",
+    "description": "Cordova plugin to use Google's Gemini AI SDK for Android and iOS",
     "license": "MIT",
     "repository": {
         "type": "git",
