@@ -2,8 +2,6 @@ package uk.co.workingedge.gemini.x
 
 
 import android.graphics.Bitmap
-import android.net.Uri
-import android.provider.MediaStore
 import android.util.Base64
 import org.apache.cordova.CordovaPlugin
 import org.apache.cordova.CallbackContext
@@ -11,7 +9,6 @@ import org.apache.cordova.PluginResult
 import org.json.JSONArray
 import org.json.JSONObject
 import uk.co.workingedge.gemini.x.lib.BlobHistoryPart
-import java.io.ByteArrayOutputStream
 
 import uk.co.workingedge.gemini.x.lib.GeminiX
 import uk.co.workingedge.gemini.x.lib.HistoryItem
@@ -27,22 +24,31 @@ class GeminiXPlugin : CordovaPlugin() {
         callbackContext: CallbackContext
     ): Boolean {
         try {
-            if (action == "initModel") {
-                initModel(callbackContext, args)
-            } else if (action == "sendMessage") {
-                sendMessage(callbackContext, args)
-            } else if (action == "countTokens") {
-                countTokens(callbackContext, args)
-            } else if (action == "initChat") {
-                initChat(callbackContext, args)
-            }  else if (action == "sendChatMessage") {
-                sendChatMessage(callbackContext, args)
-            } else if (action == "countChatTokens") {
-                countChatTokens(callbackContext, args)
-            }  else if (action == "getChatHistory") {
-                getChatHistory(callbackContext)
-            } else {
-                return false;
+            when (action) {
+                "initModel" -> {
+                    initModel(callbackContext, args)
+                }
+                "sendMessage" -> {
+                    sendMessage(callbackContext, args)
+                }
+                "countTokens" -> {
+                    countTokens(callbackContext, args)
+                }
+                "initChat" -> {
+                    initChat(callbackContext, args)
+                }
+                "sendChatMessage" -> {
+                    sendChatMessage(callbackContext, args)
+                }
+                "countChatTokens" -> {
+                    countChatTokens(callbackContext, args)
+                }
+                "getChatHistory" -> {
+                    getChatHistory(callbackContext)
+                }
+                else -> {
+                    return false
+                }
             }
             return true
         } catch (e: Exception) {
@@ -88,10 +94,10 @@ class GeminiXPlugin : CordovaPlugin() {
 
         var stopSequences: List<String>? = null
         if (params.has("stopSequences")) {
-            val stopSequenesJSONArray = params.getJSONArray("stopSequences")
+            val stopSequencesJSONArray = params.getJSONArray("stopSequences")
             val stopSequencesArray = arrayListOf<String>()
-            for (i in 0 until stopSequenesJSONArray.length()) {
-                stopSequencesArray.add(stopSequenesJSONArray.getString(i))
+            for (i in 0 until stopSequencesJSONArray.length()) {
+                stopSequencesArray.add(stopSequencesJSONArray.getString(i))
             }
             stopSequences = stopSequencesArray.toList()
         }
@@ -146,7 +152,7 @@ class GeminiXPlugin : CordovaPlugin() {
             }
         }
 
-        val images:List<Bitmap> = getBitmapsForUris(imageUris)
+        val images:List<Bitmap> = GeminiX.getBitmapsForUris(imageUris, cordova.context)
 
         GeminiX.sendMessage(
             { response, isFinal ->
@@ -174,7 +180,7 @@ class GeminiXPlugin : CordovaPlugin() {
             }
         }
 
-        val images:List<Bitmap> = getBitmapsForUris(imageUris)
+        val images:List<Bitmap> = GeminiX.getBitmapsForUris(imageUris, cordova.context)
 
         GeminiX.countTokens(
             { response ->
@@ -201,19 +207,19 @@ class GeminiXPlugin : CordovaPlugin() {
 
                 for (j in 0 until parts.length()) {
                     val part = parts.getJSONObject(j)
-                    val type = part.getString("type")
 
-                    var historyPart:HistoryPart;
-                    when (type) {
+                    val historyPart:HistoryPart = when (val type = part.getString("type")) {
                         "text" -> {
                             val text = part.getString("content")
-                            historyPart = TextHistoryPart(text)
+                            TextHistoryPart(text)
                         }
+
                         "image" -> {
                             val uri = part.getString("content")
-                            val bitmap = getBitmapFromUri(uri)
-                            historyPart = ImageHistoryPart(bitmap)
+                            val bitmap = GeminiX.getBitmapFromUri(uri, cordova.context)
+                            ImageHistoryPart(bitmap)
                         }
+
                         else -> {
                             throw Exception("Unsupported part type: $type")
                         }
@@ -252,7 +258,7 @@ class GeminiXPlugin : CordovaPlugin() {
             }
         }
 
-        val images:List<Bitmap> = getBitmapsForUris(imageUris)
+        val images:List<Bitmap> = GeminiX.getBitmapsForUris(imageUris, cordova.context)
 
         GeminiX.sendChatMessage(
             { response, isFinal ->
@@ -283,7 +289,7 @@ class GeminiXPlugin : CordovaPlugin() {
             }
         }
 
-        val images:List<Bitmap> = getBitmapsForUris(imageUris)
+        val images:List<Bitmap> = GeminiX.getBitmapsForUris(imageUris, cordova.context)
 
         GeminiX.countChatTokens(
             { response ->
@@ -314,7 +320,7 @@ class GeminiXPlugin : CordovaPlugin() {
                             }
                             is ImageHistoryPart -> {
                                 partJSON.put("type", "image/bitmap")
-                                partJSON.put("content", bitmapToBase64(part.content))
+                                partJSON.put("content", GeminiX.bitmapToBase64(part.content))
                             }
                             is BlobHistoryPart -> {
                                 partJSON.put("type", part.mimeType)
@@ -338,45 +344,11 @@ class GeminiXPlugin : CordovaPlugin() {
     /********************
      * Internal functions
      *******************/
-    private fun getBitmapsForUris(imageUris: JSONArray): List<Bitmap> {
-        val images = mutableListOf<Bitmap>()
-        for (i in 0 until imageUris.length()) {
-            val uri = imageUris.getString(i)
-            val bitmap = getBitmapFromUri(uri)
-            images.add(bitmap)
-        }
-        return images
-    }
-
-    private fun getBitmapFromUri(uri: String): Bitmap {
-        return MediaStore.Images.Media.getBitmap(
-            cordova.context.contentResolver,
-            Uri.parse(uri)
-        )
-    }
-
-    private fun bitmapToBase64(bitmap: Bitmap): String {
-        val baos = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
-        val bytes = baos.toByteArray()
-        return Base64.encodeToString(bytes, Base64.DEFAULT)
-    }
-
     private fun sendPluginResult(
         callbackContext: CallbackContext,
         keepCallback: Boolean = false
     ) {
         val pluginResult = PluginResult(PluginResult.Status.OK)
-        pluginResult.keepCallback = keepCallback
-        callbackContext.sendPluginResult(pluginResult)
-    }
-
-    private fun sendPluginResult(
-        callbackContext: CallbackContext,
-        result: String,
-        keepCallback: Boolean = false
-    ) {
-        val pluginResult = PluginResult(PluginResult.Status.OK, result)
         pluginResult.keepCallback = keepCallback
         callbackContext.sendPluginResult(pluginResult)
     }
