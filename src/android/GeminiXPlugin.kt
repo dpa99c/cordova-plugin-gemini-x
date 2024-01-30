@@ -1,7 +1,6 @@
 package uk.co.workingedge.gemini.x
 
 
-import android.graphics.Bitmap
 import android.util.Base64
 import org.apache.cordova.CordovaPlugin
 import org.apache.cordova.CallbackContext
@@ -13,6 +12,7 @@ import uk.co.workingedge.gemini.x.lib.BlobHistoryPart
 import uk.co.workingedge.gemini.x.lib.GeminiX
 import uk.co.workingedge.gemini.x.lib.HistoryItem
 import uk.co.workingedge.gemini.x.lib.HistoryPart
+import uk.co.workingedge.gemini.x.lib.Image
 import uk.co.workingedge.gemini.x.lib.ImageHistoryPart
 import uk.co.workingedge.gemini.x.lib.TextHistoryPart
 
@@ -139,7 +139,7 @@ class GeminiXPlugin : CordovaPlugin() {
         args: JSONArray
     ) {
         var streamResponse = false
-        var imageUris = JSONArray()
+        var images = JSONArray()
 
         val inputText = args.getString(0)
         if(!args.isNull(1)){
@@ -147,12 +147,12 @@ class GeminiXPlugin : CordovaPlugin() {
             if(opts.has("streamResponse")){
                 streamResponse = opts.getBoolean("streamResponse")
             }
-            if(opts.has("imageUris")){
-                imageUris = opts.getJSONArray("imageUris")
+            if(opts.has("images")){
+                images = opts.getJSONArray("images")
             }
         }
 
-        val images:List<Bitmap> = GeminiX.getBitmapsForUris(imageUris, cordova.context)
+        val modelImages:List<Image> = GeminiX.getModelImages(images, cordova.context)
 
         GeminiX.sendMessage(
             { response, isFinal ->
@@ -163,24 +163,24 @@ class GeminiXPlugin : CordovaPlugin() {
             },
             { error ->
                 sendPluginError(callbackContext, error, streamResponse)
-            }, inputText, images, streamResponse)
+            }, inputText, modelImages, streamResponse)
     }
 
     private fun countTokens(
         callbackContext: CallbackContext,
         args: JSONArray
     ) {
-        var imageUris = JSONArray()
+        var images = JSONArray()
 
         val inputText = args.getString(0)
         if(!args.isNull(1)){
             val opts = args.getJSONObject(1)
-            if(opts.has("imageUris")){
-                imageUris = opts.getJSONArray("imageUris")
+            if(opts.has("images")){
+                images = opts.getJSONArray("images")
             }
         }
 
-        val images:List<Bitmap> = GeminiX.getBitmapsForUris(imageUris, cordova.context)
+        val modelImages:List<Image> = GeminiX.getModelImages(images, cordova.context)
 
         GeminiX.countTokens(
             { response ->
@@ -188,7 +188,7 @@ class GeminiXPlugin : CordovaPlugin() {
             },
             { error ->
                 sendPluginError(callbackContext, error)
-            }, inputText, images)
+            }, inputText, modelImages)
     }
 
     private fun initChat(
@@ -245,7 +245,7 @@ class GeminiXPlugin : CordovaPlugin() {
         args: JSONArray
     ) {
         var streamResponse = false
-        var imageUris = JSONArray()
+        var images = JSONArray()
 
         val inputText = args.getString(0)
         if(!args.isNull(1)){
@@ -253,12 +253,12 @@ class GeminiXPlugin : CordovaPlugin() {
             if(opts.has("streamResponse")){
                 streamResponse = opts.getBoolean("streamResponse")
             }
-            if(opts.has("imageUris")){
-                imageUris = opts.getJSONArray("imageUris")
+            if(opts.has("images")){
+                images = opts.getJSONArray("images")
             }
         }
 
-        val images:List<Bitmap> = GeminiX.getBitmapsForUris(imageUris, cordova.context)
+        val modelImages:List<Image> = GeminiX.getModelImages(images, cordova.context)
 
         GeminiX.sendChatMessage(
             { response, isFinal ->
@@ -269,7 +269,7 @@ class GeminiXPlugin : CordovaPlugin() {
             },
             { error ->
                 sendPluginError(callbackContext, error, streamResponse)
-            }, inputText, images, streamResponse)
+            }, inputText, modelImages, streamResponse)
     }
 
     private fun countChatTokens(
@@ -277,19 +277,19 @@ class GeminiXPlugin : CordovaPlugin() {
         args: JSONArray
     ) {
         var inputText:String? = null
-        var imageUris = JSONArray()
+        var images = JSONArray()
 
         if(!args.isNull(0)){
             val opts = args.getJSONObject(0)
             if(opts.has("text")){
                 inputText = opts.getString("text")
             }
-            if(opts.has("imageUris")){
-                imageUris = opts.getJSONArray("imageUris")
+            if(opts.has("images")){
+                images = opts.getJSONArray("images")
             }
         }
 
-        val images:List<Bitmap> = GeminiX.getBitmapsForUris(imageUris, cordova.context)
+        val modelImages:List<Image> = GeminiX.getModelImages(images, cordova.context)
 
         GeminiX.countChatTokens(
             { response ->
@@ -297,7 +297,7 @@ class GeminiXPlugin : CordovaPlugin() {
             },
             { error ->
                 sendPluginError(callbackContext, error)
-            }, inputText, images
+            }, inputText, modelImages
         )
     }
 
@@ -319,7 +319,7 @@ class GeminiXPlugin : CordovaPlugin() {
                                 partJSON.put("content", part.content)
                             }
                             is ImageHistoryPart -> {
-                                partJSON.put("type", "image/bitmap")
+                                partJSON.put("type", "image/webp")
                                 partJSON.put("content", GeminiX.bitmapToBase64(part.content))
                             }
                             is BlobHistoryPart -> {
