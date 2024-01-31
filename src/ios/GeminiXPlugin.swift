@@ -1,5 +1,7 @@
 extension String: Error {}
 
+
+
 @objc(GeminiXPlugin)
 class GeminiXPlugin : CDVPlugin{
     
@@ -22,8 +24,7 @@ class GeminiXPlugin : CDVPlugin{
         let inputText = command.arguments[0] as! String
         let options = command.arguments[1] as! [String:Any]
         let streamResponse = options["streamResponse"] as? Bool ?? false
-        let imageUris = options["imageUris"] as? [String] ?? []
-        let images:[UIImage] = getImagesForUris(imageUris: imageUris)
+        let modelImages:[ImageDataWithType] = getImagesFromOptions(options: options)
         
         GeminiX.sendMessage(onSuccess: { response, isFinal, success in
             let result = [
@@ -34,21 +35,20 @@ class GeminiXPlugin : CDVPlugin{
             success()
         }, onError: { error in
             self.sendPluginError(command: command, error: "\(error)", keepCallback:streamResponse)
-        }, inputText: inputText, images: images, streamResponse: streamResponse)
+        }, inputText: inputText, images: modelImages, streamResponse: streamResponse)
     }
     
     @objc(countTokens:)
     func countTokens(_ command:CDVInvokedUrlCommand) {
         let inputText = command.arguments[0] as! String
         let options = command.arguments[1] as! [String:Any]
-        let imageUris = options["imageUris"] as? [String] ?? []
-        let images:[UIImage] = getImagesForUris(imageUris: imageUris)
+        let modelImages:[ImageDataWithType] = getImagesFromOptions(options: options)
         
         GeminiX.countTokens(onSuccess: { result in
             self.sendPluginSuccess(command: command, result: "\(result)",  keepCallback:false)
         }, onError: { error in
             self.sendPluginError(command: command, error: "\(error)", keepCallback:false)
-        }, inputText: inputText, images: images)
+        }, inputText: inputText, images: modelImages)
     }
     
     @objc(initChat:)
@@ -73,7 +73,7 @@ class GeminiXPlugin : CDVPlugin{
                                         }
                                         if type == "image" {
                                             if let uri = part["content"] as? String {
-                                                let image:UIImage? = getImageForUri(imageUri: uri)
+                                                let image:UIImage? = GeminiX.getImageForUri(imageUri: uri)
                                                 if(image != nil){
                                                     let imagePart = ImageHistoryPart(content: image!)
                                                     historyParts.append(imagePart)
@@ -107,8 +107,7 @@ class GeminiXPlugin : CDVPlugin{
         let inputText = command.arguments[0] as! String
         let options = command.arguments[1] as! [String:Any]
         let streamResponse = options["streamResponse"] as? Bool ?? false
-        let imageUris = options["imageUris"] as? [String] ?? []
-        let images:[UIImage] = getImagesForUris(imageUris: imageUris)
+        let modelImages:[ImageDataWithType] = getImagesFromOptions(options: options)
         
         GeminiX.sendChatMessage(onSuccess: { response, isFinal, success in
             let result = [
@@ -119,7 +118,7 @@ class GeminiXPlugin : CDVPlugin{
             success()
         }, onError: { error in
             self.sendPluginError(command: command, error: "\(error)", keepCallback:streamResponse)
-        }, inputText: inputText, images: images, streamResponse: streamResponse)
+        }, inputText: inputText, images: modelImages, streamResponse: streamResponse)
     }
     
     @objc(countChatTokens:)
@@ -131,14 +130,13 @@ class GeminiXPlugin : CDVPlugin{
             inputText = nil
         }
 
-        let imageUris = options["imageUris"] as? [String] ?? []
-        let images:[UIImage] = getImagesForUris(imageUris: imageUris)
+        let modelImages:[ImageDataWithType] = getImagesFromOptions(options: options)
         
         GeminiX.countChatTokens(onSuccess: { result in
             self.sendPluginSuccess(command: command, result: "\(result)",  keepCallback:false)
         }, onError: { error in
             self.sendPluginError(command: command, error: "\(error)", keepCallback:false)
-        }, inputText: inputText, images: images)
+        }, inputText: inputText, images: modelImages)
     }
 
     @objc(getChatHistory:)
@@ -177,26 +175,21 @@ class GeminiXPlugin : CDVPlugin{
     /**
      * Internal functions
      */
-    func getImagesForUris(imageUris:[String]) -> [UIImage]{
-        var images:[UIImage] = []
-        for uri in imageUris {
-            if let image = getImageForUri(imageUri: uri){
-                images.append(image)
-            }
-        }
-        return images
-    }
     
-    func getImageForUri(imageUri:String) -> UIImage?{
-        var image:UIImage? = nil
-        if let url = URL(string: imageUri) {
-            if FileManager.default.fileExists(atPath: url.path) {
-                if let _image = UIImage(contentsOfFile: url.path) {
-                    image = _image;
+    func getImagesFromOptions(options:[String:Any]) -> [ImageDataWithType]{
+        var imageUrisWithTypes:[ImageUriWithType] = []
+        
+        if let imagesArray = options["images"] as? [[String: Any]] {
+            for imageDict in imagesArray {
+                if let uriString = imageDict["uri"] as? String {
+                    let mimeType = imageDict["mimeType"] as? String
+                    let imageUri = ImageUriWithType(uri: uriString, mimeType: mimeType)
+                    imageUrisWithTypes.append(imageUri)
                 }
             }
         }
-        return image
+        let modelImages:[ImageDataWithType] = GeminiX.getModelImages(imageUrisWithTypes: imageUrisWithTypes)
+        return modelImages
     }
 
     
