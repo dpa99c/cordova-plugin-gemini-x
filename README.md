@@ -3,6 +3,8 @@ cordova-plugin-gemini-x [![Latest Stable Version](https://img.shields.io/npm/v/c
 
 Cordova plugin to use Google's [Gemini AI](https://ai.google.dev/docs) in Android and iOS mobile apps.
 
+Part of the [GeminiX abstraction layer](https://github.com/dpa99c/gemini-x) for using Google's Gemini AI SDK in cross-platform mobile apps on iOS, Android and Web platforms.
+
 Enables the use of cutting-edge generative AI directly in a Cordova app with no server-side code required. 
 
 Gemini AI models are designed to understand and generate natural language and multi-modal (text and vision) content, and are available in a variety of languages and regions.
