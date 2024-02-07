@@ -1,0 +1,6 @@
+[submodule "src/ios/gemini-x-ios"]
+	path = src/ios/gemini-x-ios
+	url = git@github.com:dpa99c/gemini-x-ios.git
+[submodule "src/android/gemini-x-android"]
+	path = src/android/gemini-x-android
+	url = git@github.com:dpa99c/gemini-x-android.git
