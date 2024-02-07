@@ -1,6 +1,0 @@
-[submodule "src/ios/gemini-x-ios"]
-	path = src/ios/gemini-x-ios
-	url = git@bitbucket.org:workingedge/gemini-x-ios.git
-[submodule "src/android/gemini-x-android"]
-	path = src/android/gemini-x-android
-	url = git@bitbucket.org:workingedge/gemini-x-android.git
