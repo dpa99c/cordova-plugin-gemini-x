@@ -1,7 +1,20 @@
 cordova-plugin-gemini-x [![Latest Stable Version](https://img.shields.io/npm/v/cordova-plugin-gemini-x.svg)](https://www.npmjs.com/package/cordova-plugin-gemini-x) [![Total Downloads](https://img.shields.io/npm/dt/cordova-plugin-gemini-x.svg)](https://npm-stat.com/charts.html?package=cordova-plugin-gemini-x)
 =========================
 
-Cordova plugin to use Google's Gemini AI SDK for Android and iOS.
+Cordova plugin to use Google's [Gemini AI](https://ai.google.dev/docs) in Android and iOS mobile apps.
+
+Enables you to use the cutting-edge Gemini AI models directly in your Cordova app with no server-side code required. 
+
+Gemini AI models are designed to understand and generate natural language and multi-modal (text and vision) content, and are available in a variety of languages and regions.
+
+Features include:
+- Unified cross-platform abstraction for the Gemini AI SDKs for Android and iOS.
+- Text-only and multi-modal (text and vision) models.
+- Streaming and non-streaming interactions.
+- Chat history for multi-turn conversations.
+- Counting tokens for input text and images.
+- Safety settings for filtering unsafe content.
+- Model configuration parameters such as temperature, topP, topK, maxOutputTokens, and stopSequences.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -114,6 +127,21 @@ For more information on model parameters, see the [Gemini documentation](https:/
 
 #### Example usage
 
+##### Basic initialization
+```javascript
+var params = {
+    modelName: 'gemini-pro',
+    apiKey: YOUR_GEMINI_API_KEY
+};
+
+GeminiX.initModel(function(){
+    console.log(`init success`);
+}, function(error){
+    console.error(`init error: ${error}`);
+}, params);
+```
+
+##### Advanced initialization
 ```javascript
 var safetySettings = {};
 safetySettings[GeminiX.SafetySettingHarmCategory.DANGEROUS_CONTENT] = GeminiX.SafetySettingLevel.LOW_AND_ABOVE;
@@ -131,9 +159,9 @@ var params = {
 };
 
 GeminiX.initModel(function(){
-    console.log(`${modelName} init success`);
+    console.log(`init success`);
 }, function(error){
-    console.error(`${modelName} init error: ${error}`);
+    console.error(`init error: ${error}`);
 }, params);
 ```
 
@@ -154,7 +182,9 @@ Sends a message to the Gemini AI model and returns the response.
     - If `true`, then the `success` callback will be called multiple times with partial responses until the final response is received. The final response text will be empty and `isFinal` will be `true`.
     - If `false`, then the `success` callback will be called once with the final response.
     - Default is `false`.
-  - {string[]} imageUris (optional) - array of image URIs on the device to send to the model. 
+  - {object[]} images (optional) - array of images on the device to send to the model, each specified as an object with the following properties:
+    - {string} uri - the URI of the image on the device.
+    - {string} mimeType - (optional) the mime type of the image. If not specified, the plugin will attempt to infer the mime type.
     - Only applicable if the model is a multi-modal model.
 
 #### Example usage
@@ -175,14 +205,17 @@ GeminiX.sendMessage(function(responseText, isFinal){
 
 // A non-streaming multi-modal interaction
 var userInputText = 'What do you think of this image?';
-var imageUri = 'file:///path/to/image/on/device/1.jpg';
+var image = {
+    uri: 'file:///path/to/image/on/device/1.jpg',
+    mimeType: 'image/jpeg'
+};
 GeminiX.sendMessage(function(responseText, isFinal){
   console.log(`Response: ${responseText}`); // display in UI
 }, function(error){
   console.error(`Error: ${error}`);
 }, userInputText, {
   streamResponse: false,
-  imageUris: [imageUri]
+  images: [image]
 });
 ```
 
@@ -196,7 +229,9 @@ Retrieves the number of tokens used by the given input text and optional images 
 - {function} error (required) - function to execute on failure to count the tokens. Will be passed a single argument which is the error message string.
 - {string} userInputText (required) - the user input text to send to the model.
 - {object} options (optional) - additional options for the message.
-  - {string[]} imageUris - array of image URIs on the device to send to the model.
+  - {object[]} images (optional) - array of images on the device to send to the model, each specified as an object with the following properties:
+    - {string} uri - the URI of the image on the device.
+    - {string} mimeType - (optional) the mime type of the image. If not specified, the plugin will attempt to infer the mime type.
     - Only applicable if the model is a multi-modal model.
 
 #### Example usage
@@ -211,13 +246,16 @@ GeminiX.countTokens(function(count){
 
 // Count tokens for multi-modal interaction
 var userInputText = 'What do you think of this image?';
-var imageUri = 'file:///path/to/image/on/device/1.jpg';
+var image = {
+  uri: 'file:///path/to/image/on/device/1.jpg',
+  mimeType: 'image/jpeg'
+};
 GeminiX.countTokens(function(count){
     console.log(`Token count: ${count}`);
 }, function(error){
   console.error(`Error: ${error}`);
 }, userInputText, {
-  imageUris: [imageUri]
+  images: [image]
 });
 ```
 
@@ -231,9 +269,15 @@ Initializes a Gemini AI chat session for a multi-turn conversation with an optio
 - {function} error (required) - function to execute on failure to initialize the chat session. Will be passed a single argument which is the error message string.
 - {array} chatHistory (optional) - array of chat history items to initialize the chat session with. Each item in the array should be an object with the following properties:
   - {boolean} isUser (required) - whether the chat history item is from the user or the model. Either `text` and/or `imageUris` must be specified.
-  - {string} text (optional) - the text of the chat history item.
-  - {string[]} imageUris (optional) - array of image URIs for the chat history item. 
-    - Only applicable if the model is a multi-modal model.
+  - {array} parts (required) - array of parts for the chat history item.
+    - Each part in the array should be an object with the following properties:
+      - {string} type (required) - the type of the part. Either `text` or `image`
+      - {string} content (required) - the content of the part. 
+        - If `type` is `text`, then this should be the text content.
+        - If `type` is `image`, then this should be an object representing an image on the device with the following properties:
+          - {string} uri - the URI of the image on the device.
+          - {string} mimeType - (optional) the mime type of the image. If not specified, the plugin will attempt to infer the mime type.
+          - Only applicable if the model is a multi-modal model.
 
 #### Example usage
 ```javascript
@@ -241,19 +285,39 @@ Initializes a Gemini AI chat session for a multi-turn conversation with an optio
 var chatHistory = [
   {
     isUser: true,
-    text: 'Hello Gemini'
+    parts:[
+      {
+        type: 'text',
+        content: 'Hello Gemini'
+      }
+    ]
   },
   {
     isUser: false,
-    text: 'Hi there'
+    parts:[
+      {
+        type: 'text',
+        content: 'Hi there'
+      }
+    ]
   },
   {
     isUser: true,
-    text: 'My name is Bob and I live in a small town in Ohio called Springfield. I like to play tennis and go hiking.'
+    parts:[
+      {
+        type: 'text',
+        content: 'My name is Bob and I live in a small town in Ohio called Springfield. I like to play tennis and go hiking.'
+      }
+    ]
   },
   {
     isUser: false,
-    text: 'Nice to meet you Bob'
+    parts:[
+      {
+        type: 'text',
+        content: 'Nice to meet you Bob'
+      }
+    ]
   }
 ];
 GeminiX.initChat(function(){
@@ -266,8 +330,19 @@ GeminiX.initChat(function(){
 var chatHistory = [
   {
     isUser: true,
-    text: 'What do you think of this image?',
-    imageUris: ['file:///path/to/image/on/device/1.jpg']
+    parts:[
+      {
+        type: 'text',
+        content: 'What do you think of this image?'
+      },
+      {
+        type: 'image',
+        content: {
+          uri: 'file:///path/to/image/on/device/1.jpg',
+          mimeType: 'image/jpeg'
+        }
+      }
+    ]
   },
   {
     isUser: false,
@@ -275,8 +350,19 @@ var chatHistory = [
   },
   {
     isUser: true,
-    text: 'What about this one?',
-    imageUris: ['file:///path/to/image/on/device/2.jpg']
+    parts:[
+        {
+            type: 'text',
+            content: 'What about this one?'
+        },
+        {
+            type: 'image',
+            content: {
+            uri: 'file:///path/to/image/on/device/2.jpg',
+            mimeType: 'image/jpeg'
+            }
+        }
+    ]
   },
   {
     isUser: false,
@@ -307,7 +393,9 @@ Sends a message to the Gemini AI chat session and returns the response.
     - If `true`, then the `success` callback will be called multiple times with partial responses until the final response is received. The final response text will be empty and `isFinal` will be `true`.
     - If `false`, then the `success` callback will be called once with the final response.
     - Default is `false`.
-  - {string[]} imageUris - array of image URIs on the device to send to the model.
+  - {object[]} images (optional) - array of images on the device to send to the model, each specified as an object with the following properties:
+    - {string} uri - the URI of the image on the device.
+    - {string} mimeType - (optional) the mime type of the image. If not specified, the plugin will attempt to infer the mime type.
     - Only applicable if the model is a multi-modal model.
 
 #### Example usage
@@ -328,14 +416,17 @@ GeminiX.sendChatMessage(function(responseText, isFinal){
 
 // A non-streaming multi-modal interaction
 var userInputText = 'What do you think of this image compared to the previous two?';
-var imageUri = 'file:///path/to/image/on/device/3.jpg';
+var image = {
+  uri: 'file:///path/to/image/on/device/1.jpg',
+  mimeType: 'image/jpeg'
+};
 GeminiX.sendChatMessage(function(responseText, isFinal){
   console.log(`Response: ${responseText}`); // display in UI
 }, function(error){
   console.error(`Error: ${error}`);
 }, userInputText, {
   streamResponse: false,
-  imageUris: [imageUri]
+  images: [image]
 });
 ```
 
@@ -349,7 +440,9 @@ Retrieves the number of tokens used by the chat history, and the optional input 
 - {function} error (required) - function to execute on failure to count the tokens. Will be passed a single argument which is the error message string.
 - {object} options (optional) - additional options for the message.
   - {string} text - the user input text to send to the model.
-  - {string[]} imageUris - array of image URIs for the chat history item.
+  - {object[]} images (optional) - array of images on the device to send to the model, each specified as an object with the following properties:
+    - {string} uri - the URI of the image on the device.
+    - {string} mimeType - (optional) the mime type of the image. If not specified, the plugin will attempt to infer the mime type.
     - Only applicable if the model is a multi-modal model.
 
 #### Example usage
@@ -363,14 +456,17 @@ GeminiX.countChatTokens(function(count){
 
 // Count tokens for an additional multi-modal interaction
 var userInputText = 'What do you think of this image?';
-var imageUri = 'file:///path/to/image/on/device/1.jpg';
+var image = {
+  uri: 'file:///path/to/image/on/device/1.jpg',
+  mimeType: 'image/jpeg'
+};
 GeminiX.countChatTokens(function(count){
   console.log(`Token count: ${count}`);
 }, function(error){
   console.error(`Error: ${error}`);
 }, {
   text: userInputText,
-  imageUris: [imageUri]
+  images: [image]
 });
 ```
 
@@ -378,7 +474,7 @@ GeminiX.countChatTokens(function(count){
 Retrieves the chat history for the current Gemini AI chat session.
 - Requires a chat session to be initialized first using `initChat()`.
 - Can be used to store the chat history for restoration on app restart.
-- Note that for multi-modal chat history, the image data returned will be the base64-encoded image data rather than the original image URI since the latter is not stored in the chat history.
+- Note that for multi-modal chat history, the image data returned will be the base64-encoded image data rather than the original image URI since the latter is not available in the model's chat history.
 
 #### Parameters
 - {function} success (required) - function to execute on receiving a response from the model.
