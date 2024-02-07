@@ -75,8 +75,8 @@ To install the plugin in your Cordova project, run the following command:
 The following steps are required to setup the plugin for use in your Cordova project:
 
 ## iOS
-The Gemini SDK is not currently available via Cocoapods and Cordova doesn't currently support the Swift Package Manager, so you will need to manually add the SDK to your project.
-To add the SDK to your project, follow [these instructions](https://ai.google.dev/tutorials/swift_quickstart#add-sdk).
+The Gemini SDK is currently only available via Swift Package Manager (not Cocoapods) and Cordova doesn't currently support the Swift Package Manager, so you will need to manually add the SDK to your Xcode project in `platforms/ios`/.
+To add the SDK to your Xcode project, follow [these instructions](https://ai.google.dev/tutorials/swift_quickstart#add-sdk).
 
 # Available regions
 Currently Gemini is not available in all regions (mainly UK and EU).
