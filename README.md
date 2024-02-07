@@ -20,6 +20,7 @@ Features include:
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
+- [Example project](#example-project)
 - [Requirements](#requirements)
   - [Android](#android)
   - [iOS](#ios)
@@ -42,6 +43,9 @@ Features include:
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+# Example project
+See the [example project](https://github.com/dpa99c/cordova-plugin-gemini-x-example) which contains a Cordova app project to demonstrate/validate the plugin functionality.
+
 # Requirements
 The following requirements must be met in order to use this plugin:
 
@@ -53,10 +57,12 @@ The following requirements must be met in order to use this plugin:
 - Compile SDK version 34 or higher
 - AndroidX
 - Kotlin 1.9.0 or higher
+- Minimum Cordova Android platform version: `cordova-android@12` 
 
 ## iOS
 - Xcode 15.0 or higher
 - Deployment target of iOS 15.0 or higher
+- Minimum Cordova iOS platform version: `cordova-android@7` 
  
 # Installation
 To install the plugin in your Cordova project, run the following command:
