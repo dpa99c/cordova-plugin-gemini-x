@@ -24,7 +24,7 @@ class GeminiXPlugin : CDVPlugin{
         let inputText = command.arguments[0] as! String
         let options = command.arguments[1] as! [String:Any]
         let streamResponse = options["streamResponse"] as? Bool ?? false
-        let modelImages:[ImageDataWithType] = getImagesFromOptions(options: options)
+        let modelImages:[ImageDataWithType] = GeminiX.getImagesFromOptions(options: options)
         
         GeminiX.sendMessage(onSuccess: { response, isFinal, success in
             let result = [
@@ -42,7 +42,7 @@ class GeminiXPlugin : CDVPlugin{
     func countTokens(_ command:CDVInvokedUrlCommand) {
         let inputText = command.arguments[0] as! String
         let options = command.arguments[1] as! [String:Any]
-        let modelImages:[ImageDataWithType] = getImagesFromOptions(options: options)
+        let modelImages:[ImageDataWithType] = GeminiX.getImagesFromOptions(options: options)
         
         GeminiX.countTokens(onSuccess: { result in
             self.sendPluginSuccess(command: command, result: "\(result)",  keepCallback:false)
@@ -107,7 +107,7 @@ class GeminiXPlugin : CDVPlugin{
         let inputText = command.arguments[0] as! String
         let options = command.arguments[1] as! [String:Any]
         let streamResponse = options["streamResponse"] as? Bool ?? false
-        let modelImages:[ImageDataWithType] = getImagesFromOptions(options: options)
+        let modelImages:[ImageDataWithType] = GeminiX.getImagesFromOptions(options: options)
         
         GeminiX.sendChatMessage(onSuccess: { response, isFinal, success in
             let result = [
@@ -130,7 +130,7 @@ class GeminiXPlugin : CDVPlugin{
             inputText = nil
         }
 
-        let modelImages:[ImageDataWithType] = getImagesFromOptions(options: options)
+        let modelImages:[ImageDataWithType] = GeminiX.getImagesFromOptions(options: options)
         
         GeminiX.countChatTokens(onSuccess: { result in
             self.sendPluginSuccess(command: command, result: "\(result)",  keepCallback:false)
@@ -175,22 +175,6 @@ class GeminiXPlugin : CDVPlugin{
     /**
      * Internal functions
      */
-    
-    func getImagesFromOptions(options:[String:Any]) -> [ImageDataWithType]{
-        var imageUrisWithTypes:[ImageUriWithType] = []
-        
-        if let imagesArray = options["images"] as? [[String: Any]] {
-            for imageDict in imagesArray {
-                if let uriString = imageDict["uri"] as? String {
-                    let mimeType = imageDict["mimeType"] as? String
-                    let imageUri = ImageUriWithType(uri: uriString, mimeType: mimeType)
-                    imageUrisWithTypes.append(imageUri)
-                }
-            }
-        }
-        let modelImages:[ImageDataWithType] = GeminiX.getModelImages(imageUrisWithTypes: imageUrisWithTypes)
-        return modelImages
-    }
 
     
     func sendPluginNoResult(command: CDVInvokedUrlCommand) {
